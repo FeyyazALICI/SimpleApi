@@ -90,7 +90,7 @@ public class CatController {
 
 
 
-    // Trial of the Usage of 'Path Variable'
+    // Trial of the Usage of 'Path Variable'  
     @PostMapping("/helloCat/{id}")
     public ResponseEntity<ApiResponse> helloCat(@PathVariable int id){
         return catService.helloCat(id);
