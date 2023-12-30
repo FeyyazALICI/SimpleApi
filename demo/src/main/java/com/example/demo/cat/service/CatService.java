@@ -3,9 +3,10 @@ package com.example.demo.cat.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.demo.cat.entity.CatEntity;
 import com.example.demo.cat.repository.CatRepository;
@@ -202,4 +203,28 @@ public class CatService {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("Cat wasn't found"));
     }
     // --------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Trial of the Usage of 'Path Variable'
+    public ResponseEntity<ApiResponse> helloCat(int id){
+        CatEntity cat = catRepository.findById(id);
+        String type= cat.getType();
+        String message = "Hello "+type;
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(message));
+    }
 }
