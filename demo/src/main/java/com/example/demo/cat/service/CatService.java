@@ -3,10 +3,12 @@ package com.example.demo.cat.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import com.example.demo.cat.entity.CatEntity;
 import com.example.demo.cat.repository.CatRepository;
@@ -19,13 +21,25 @@ import jakarta.persistence.EntityManager;
 // Auxilary imports
 import java.util.*;
 
+
 @Service
 public class CatService {
+
+    /**
+    * Last Update on 31.12.2023
+    *
+    * @author Feyyaz ALICI
+    */
+
+
 
     @Autowired
     private CatRepository catRepository;
     @Autowired
+    private LocalValidatorFactoryBean validator;
+    @Autowired
     private EntityManager entityManager;
+
 
     // BASIC GET
     // --------------------------------------------------------------------
@@ -42,17 +56,42 @@ public class CatService {
     }
     // --------------------------------------------------------------------
 
+    
+
+    // Validation Handling
+    // --------------------------------------------------------------------
+    public String validationStep(CatEntity data) {
+        // Validation error handling
+        Errors errors = new BeanPropertyBindingResult(data, "catEntity");
+        ValidationUtils.invokeValidator(validator, data, errors);       // validating entity constrainsts
+
+        if (errors.hasErrors()) {
+            return "Validation Error: + errors.getFieldError().getDefaultMessage()";
+        }else{
+            return "No Validation Error!";
+        }
+    }
+    // --------------------------------------------------------------------
+
+
+
     // BASIC INSERT
     // --------------------------------------------------------------------
     // JPA
     @Transactional
     public ResponseEntity<ApiResponse> addCat(CatEntity data) {
+        String validMessage = validationStep(data);
+        if(   !validMessage.equals("No Validation Error!")   ){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(validMessage));
+        }
+
         if (!(catRepository.existsByType(data.getType()))) {
             try {
                 CatEntity cat = new CatEntity();
                 cat.setType(data.getType());
                 catRepository.saveAndFlush(cat);
-                return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse("Succesfull Operation!"));
+                return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse("Successful Operation!"));
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(new ApiResponse("Internal Server Error!"));
@@ -64,9 +103,15 @@ public class CatService {
 
     // NATIVE
     @Transactional
-    public ResponseEntity<ApiResponse> addCatNative(CatEntity cat) {
+    public ResponseEntity<ApiResponse> addCatNative(CatEntity data) {
+        String validMessage = validationStep(data);
+        if(   !validMessage.equals("No Validation Error!")   ){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(validMessage));
+        }
+
         List<CatEntity> cat_list = getAllData();
-        String type = cat.getType();
+        String type = data.getType();
         boolean is_the_cat_exist = false;
         for (CatEntity item : cat_list) {
             if (item.getType().equals(type)) {
@@ -97,13 +142,19 @@ public class CatService {
 
 
 
+
     // BASIC DELETE
     // JPA
     // --------------------------------------------------------------------
     @Transactional
     public ResponseEntity<ApiResponse> deleteCat(CatEntity data) {
+        String validMessage = validationStep(data);
+        if(   !validMessage.equals("No Validation Error!")   ){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(validMessage));
+        }
 
-        if (catRepository.existsByType(data.getType())) {
+        if(catRepository.existsByIdAndType(data.getId(), data.getType())){
             try {
                 catRepository.delete(data);
                 return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse("Succesfull Operation!"));
@@ -118,6 +169,12 @@ public class CatService {
     // NATIVE
     @Transactional
     public ResponseEntity<ApiResponse> deleteCatNative(CatEntity data){
+        String validMessage = validationStep(data);
+        if(   !validMessage.equals("No Validation Error!")   ){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(validMessage));
+        }
+
         List<CatEntity> cat_list = getAllData();
         int id = data.getId();
         String type = data.getType();
@@ -157,6 +214,12 @@ public class CatService {
     // JPA
     @Transactional
     public ResponseEntity<ApiResponse> updateCat(CatEntity data){
+        String validMessage = validationStep(data);
+        if(   !validMessage.equals("No Validation Error!")   ){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(validMessage));
+        }
+
         try{
             CatEntity cat = catRepository.findById(data.getId());
             cat.setType(data.getType());
@@ -171,6 +234,12 @@ public class CatService {
     // NATIVE
     @Transactional
     public ResponseEntity<ApiResponse> updateCatNative(CatEntity data){
+        String validMessage = validationStep(data);
+        if(   !validMessage.equals("No Validation Error!")   ){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(validMessage));
+        }
+
         List<CatEntity> cat_list = getAllData();
         int id = data.getId();
         String type = data.getType();
@@ -203,18 +272,6 @@ public class CatService {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("Cat wasn't found"));
     }
     // --------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
