@@ -16,10 +16,31 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
-        return http.authorizeHttpRequests((auth) -> auth.anyRequest().permitAll()).build();
+        http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+        return http.build();
     }
 
+    /* NOTES
+    * Spring Security uses multiple filters to evaluate requests -> SecurityFilterChain
 
+    @Bean   // Empty Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http.build();
+    }
+
+    @Bean   // All requests authenticated
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+        return http.build();
+    }
+
+    @Bean   // All requests authenticated with csrf disabled
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+        return http.build();
+    }
+    */
 
 
 }
